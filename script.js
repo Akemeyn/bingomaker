@@ -117,6 +117,34 @@ function toggleCell(i) {
     checkWin();
 }
 
+
+function setupBingo(encodedData) {
+    const decoded = decodeURIComponent(escape(atob(encodedData)));
+    bingoItems = decoded.split('|').sort(() => Math.random() - 0.5);
+    const userRef = ref(db, 'players/' + currentUser.id);
+    
+    set(userRef, { 
+        name: currentUser.name, 
+        selections: mySelections, 
+        items: bingoItems, 
+        color: currentUser.color,
+        isOnline: true 
+    });
+    
+    onDisconnect(userRef).update({ isOnline: false });
+    
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === 'visible') {
+            set(ref(db, `players/${currentUser.id}/isOnline`), true);
+        } else {
+            set(ref(db, `players/${currentUser.id}/isOnline`), false);
+        }
+    });
+
+    renderBoard();
+    listenOnlinePlayers();
+}
+
 function listenOnlinePlayers() {
     onValue(ref(db, 'players'), (snapshot) => {
         const players = snapshot.val();
@@ -128,7 +156,12 @@ function listenOnlinePlayers() {
             const player = players[id];
             const card = document.createElement('div');
             card.className = 'mini-player-card';
-            card.innerHTML = `<span class="mini-name">🟢 ${player.name}</span>`;
+            
+            const statusIcon = player.isOnline ? "🟢" : "⚪";
+            const statusText = player.isOnline ? "Çevrimiçi" : "Uykuda";
+            
+            card.innerHTML = `<span class="mini-name">${statusIcon} ${player.name} (${statusText})</span>`;
+            
             const grid = document.createElement('div');
             grid.className = 'mini-grid';
             for (let i = 0; i < 25; i++) {
