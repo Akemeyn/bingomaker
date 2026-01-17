@@ -1,6 +1,6 @@
 body {
     font-family: 'Segoe UI', sans-serif;
-    background-color: #f0f2f5;
+    background-color: #E2D4C4; /* İstediğin arka plan rengi */
     margin: 0;
     display: flex;
     justify-content: center;
@@ -10,7 +10,7 @@ body {
 .container {
     background: white;
     width: 100%;
-    max-width: 800px;
+    max-width: 1100px; /* Genişliği takip paneli için biraz artırdık */
     padding: 25px;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
@@ -18,6 +18,9 @@ body {
 }
 
 .screen.hidden { display: none; }
+
+/* Logo Ayarı */
+.bingo-logo { max-width: 200px; height: auto; margin-bottom: 10px; }
 
 .editor-container {
     border: 2px solid #ddd;
@@ -41,8 +44,6 @@ body {
     border-radius: 5px;
 }
 
-#counter { margin: 15px 0; font-weight: bold; color: #e67e22; }
-
 .main-btn {
     background: #27ae60;
     color: white;
@@ -59,43 +60,47 @@ body {
     transition: 0.3s;
 }
 
-.main-btn:hover {
-    background: #219150;
-    transform: scale(1.05);
-}
-
-.other-main-btn{
-    width: 200px;
-}
-
 .game-layout {
     display: flex;
     gap: 20px;
-    text-align: left;
 }
 
 .board-area { flex: 2; text-align: center; }
 
+/* Sağ Panel ve Mini Kartlar */
 .online-area {
     flex: 1;
     background: #f8f9fa;
     padding: 15px;
     border-radius: 8px;
     border: 1px solid #eee;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
-.online-area h3 { margin-top: 0; font-size: 16px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
-
-#online-list { list-style: none; padding: 0; }
-
-#online-list li {
-    padding: 8px;
+.mini-player-card {
     background: white;
-    margin-bottom: 5px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
     border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.mini-name { font-size: 12px; font-weight: bold; margin-bottom: 5px; display: block; }
+
+.mini-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    width: 100px; /* Mini kart genişliği */
+    margin: 0 auto;
+}
+
+.mini-cell {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #ccc;
+    background: #fff;
 }
 
 .board {
@@ -110,22 +115,9 @@ body {
     display: flex; align-items: center; justify-content: center;
     font-size: 11px; font-weight: bold; cursor: pointer;
     padding: 5px; background: #fff; word-break: break-word;
-    transition: 0.2s;
-}
-
-.cell.selected {
-    background-color: #f1c40f;
-    color: #000;
-    transform: scale(0.95);
 }
 
 .cell.free { background-color: #eee; cursor: default; }
-
-button {
-    background: #27ae60; color: white; border: none;
-    padding: 12px 20px; border-radius: 5px; cursor: pointer;
-    font-weight: bold;
-}
 
 .link-box {
     display: flex;
@@ -135,7 +127,7 @@ button {
     margin-top: 15px;
 }
 #share-url { width: 100%; max-width: 300px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
-.reset-btn { background: #3498db; margin-top: 20px; width: 100%; }
+.reset-btn { background: #3498db; margin-top: 20px; width: 100%; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
 
 .overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -145,17 +137,4 @@ button {
 
 .overlay.hidden { display: none; }
 
-.win-content {
-    background: white; padding: 40px; border-radius: 15px;
-    text-align: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    max-width: 90%;
-}
-
-@keyframes popIn {
-    0% { transform: scale(0.5); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-}
-
-@media (max-width: 600px) {
-    .game-layout { flex-direction: column; }
-}
+.win-content { background: white; padding: 40px; border-radius: 15px; text-align: center; max-width: 90%; }

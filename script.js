@@ -15,38 +15,33 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-let currentUser = { id: null, name: "" };
+// Renk Paleti
+const colorPalette = ["#E38B23", "#A17CE9", "#F374CF", "#7AF0BD", "#77BEDE", "#DA4B49"];
+let currentUser = { id: null, name: "", color: "" };
 let mySelections = [12];
 let bingoItems = [];
 
 window.onload = function() {
     const urlParams = new URLSearchParams(window.location.search);
     const data = urlParams.get('items');
-    if (data) {
-        showScreen('login-screen');
-    } else {
-        showScreen('setup-screen');
-    }
+    if (data) showScreen('login-screen');
+    else showScreen('setup-screen');
 };
 
 window.loginUser = function() {
     const nick = document.getElementById('nickname-input').value.trim();
     if (!nick) return alert("Lütfen bir isim girin!");
+    
     currentUser.name = nick;
     currentUser.id = "user_" + Math.random().toString(36).substr(2, 9);
+    // Rastgele Renk Atama
+    currentUser.color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+    
     const urlParams = new URLSearchParams(window.location.search);
     const data = urlParams.get('items');
     showScreen('game-screen');
     setupBingo(data);
 };
-
-window.addEventListener('beforeunload', function (e) {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('items')) {
-        e.preventDefault();
-        e.returnValue = '';
-    }
-});
 
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
@@ -75,7 +70,15 @@ function setupBingo(encodedData) {
     const decoded = decodeURIComponent(escape(atob(encodedData)));
     bingoItems = decoded.split('|').sort(() => Math.random() - 0.5);
     const userRef = ref(db, 'players/' + currentUser.id);
-    set(userRef, { name: currentUser.name, selections: mySelections, items: bingoItems });
+    
+    // Veritabanına Rengi de kaydediyoruz
+    set(userRef, { 
+        name: currentUser.name, 
+        selections: mySelections, 
+        items: bingoItems,
+        color: currentUser.color 
+    });
+    
     onDisconnect(userRef).remove();
     renderBoard();
     listenOnlinePlayers();
@@ -86,7 +89,14 @@ function renderBoard() {
     board.innerHTML = '';
     for (let i = 0; i < 25; i++) {
         const cell = document.createElement('div');
-        cell.className = 'cell' + (mySelections.includes(i) ? ' selected' : '') + (i === 12 ? ' free' : '');
+        cell.className = 'cell' + (i === 12 ? ' free selected' : '');
+        
+        // Seçili ise kullanıcıya özel rengi bas
+        if (mySelections.includes(i)) {
+            cell.style.backgroundColor = currentUser.color;
+            cell.style.transform = "scale(0.95)";
+        }
+
         if (i === 12) {
             cell.innerText = "⭐ JOKER";
         } else {
@@ -109,36 +119,36 @@ function toggleCell(i) {
     checkWin();
 }
 
+// ANLIK İZLEME: Listeyi her güncellemede komple yeniden çizer
 function listenOnlinePlayers() {
     onValue(ref(db, 'players'), (snapshot) => {
         const players = snapshot.val();
-        const list = document.getElementById('online-list');
-        list.innerHTML = '';
+        const container = document.getElementById('others-container');
+        container.innerHTML = '';
+        
         for (let id in players) {
             if (id === currentUser.id) continue;
-            const li = document.createElement('li');
-            li.innerHTML = `🟢 ${players[id].name}`;
-            li.onclick = () => viewOther(players[id]);
-            list.appendChild(li);
+            
+            const player = players[id];
+            const card = document.createElement('div');
+            card.className = 'mini-player-card';
+            card.innerHTML = `<span class="mini-name">🟢 ${player.name}</span>`;
+            
+            const grid = document.createElement('div');
+            grid.className = 'mini-grid';
+            
+            for (let i = 0; i < 25; i++) {
+                const mc = document.createElement('div');
+                mc.className = 'mini-cell';
+                if (player.selections && player.selections.includes(i)) {
+                    mc.style.backgroundColor = player.color || "#f1c40f";
+                }
+                grid.appendChild(mc);
+            }
+            card.appendChild(grid);
+            container.appendChild(card);
         }
     });
-}
-
-function viewOther(player) {
-    const body = document.getElementById('modal-body');
-    body.innerHTML = `<h3>${player.name} Kartı</h3><div class="board" id="mini-board"></div>`;
-    const miniBoard = document.getElementById('mini-board');
-    for (let i = 0; i < 25; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell' + (player.selections.includes(i) ? ' selected' : '');
-        if (i === 12) cell.innerText = "⭐";
-        else {
-            const idx = i > 12 ? i - 1 : i;
-            cell.innerText = player.items[idx] || "";
-        }
-        miniBoard.appendChild(cell);
-    }
-    document.getElementById('overlay').classList.remove('hidden');
 }
 
 function checkWin() {

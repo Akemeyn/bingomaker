@@ -37,13 +37,15 @@
         <div id="game-screen" class="screen hidden">
             <div class="game-layout">
                 <div class="board-area">
-                    <h1 id="game-title">Bingo Kartın</h1>
+                    <div class="logo-wrapper">
+                        <img src="Bingologo.jpg" alt="Bingo" class="bingo-logo">
+                    </div>
                     <div id="bingo-board" class="board"></div>
                     <p class="info-text">5'li sıra yap ve kazan!</p>
                 </div>
                 <div class="online-area">
-                    <h3>Oyuncular</h3>
-                    <ul id="online-list"></ul>
+                    <h3>Oyuncular (Canlı)</h3>
+                    <div id="others-container"></div>
                 </div>
             </div>
             <button onclick="window.location.search = ''" class="reset-btn">Yeni Liste Yaz</button>
