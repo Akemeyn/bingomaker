@@ -120,6 +120,27 @@ body {
 
 .mini-cell { width: 18px; height: 18px; border: 1px solid #ccc; background: #fff; }
 
+#nickname-input {
+  border: none;
+  outline: none;
+  border-radius: 15px;
+  padding: 1em;
+  background-color: #ccc;
+  box-shadow: inset 2px 5px 10px rgba(0,0,0,0.3);
+  transition: 300ms ease-in-out;
+  width: 80%;
+  max-width: 300px;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+#nickname-input:focus {
+  background-color: white;
+  transform: scale(1.05);
+  box-shadow: 13px 13px 100px #969696,
+              -13px -13px 100px #ffffff;
+}
+
 .board {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
