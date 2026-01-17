@@ -30,11 +30,9 @@ window.onload = function() {
 window.loginUser = function() {
     const nick = document.getElementById('nickname-input').value.trim();
     if (!nick) return alert("Lütfen bir isim girin!");
-    
     currentUser.name = nick;
     currentUser.id = "user_" + Math.random().toString(36).substr(2, 9);
     currentUser.color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
-    
     const urlParams = new URLSearchParams(window.location.search);
     const data = urlParams.get('items');
     showScreen('game-screen');
@@ -112,7 +110,7 @@ function listenOnlinePlayers() {
             const player = players[id];
             const card = document.createElement('div');
             card.className = 'mini-player-card';
-            card.innerHTML = `<span class="mini-name">🟢 ${player.name}</span>`;
+            card.innerHTML = `<span class="mini-name">🟢 ${player.name} (İzlemek için tıkla)</span>`;
             const grid = document.createElement('div');
             grid.className = 'mini-grid';
             for (let i = 0; i < 25; i++) {
@@ -122,16 +120,37 @@ function listenOnlinePlayers() {
                 grid.appendChild(mc);
             }
             card.appendChild(grid);
+            card.onclick = () => viewOther(player);
             container.appendChild(card);
         }
     });
+}
+
+function viewOther(player) {
+    const body = document.getElementById('modal-body');
+    body.innerHTML = `<h3>${player.name} Kartı</h3><div class="board" id="mini-board-modal"></div><p style="font-size:12px; color:#666;">Kapatmak için dışarıya tıklayın.</p>`;
+    const miniBoard = document.getElementById('mini-board-modal');
+    for (let i = 0; i < 25; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell' + (player.selections.includes(i) ? ' selected' : '');
+        if (player.selections.includes(i)) cell.style.backgroundColor = player.color || "#f1c40f";
+        if (i === 12) cell.innerText = "⭐";
+        else {
+            const idx = i > 12 ? i - 1 : i;
+            cell.innerText = player.items[idx] || "";
+        }
+        miniBoard.appendChild(cell);
+    }
+    document.getElementById('overlay').classList.remove('hidden');
 }
 
 function checkWin() {
     const winCombos = [[0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],[0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],[0,6,12,18,24],[4,8,12,16,20]];
     for (let combo of winCombos) {
         if (combo.every(idx => mySelections.includes(idx))) {
-            document.getElementById('modal-body').innerHTML = "<h2>🎉 BİNGO! 🎉</h2>";
+            const body = document.getElementById('modal-body');
+            // BUTON SADECE BURADA EKLENİYOR
+            body.innerHTML = `<h2>🎉 BİNGO! 🎉</h2><p>Tebrikler, kazandınız!</p><button onclick="closeModal()" class="main-btn">Kapat</button>`;
             document.getElementById('overlay').classList.remove('hidden');
             break;
         }

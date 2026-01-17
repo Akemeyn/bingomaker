@@ -52,10 +52,9 @@
         </div>
     </div>
 
-    <div id="overlay" class="overlay hidden">
-        <div class="win-content">
+    <div id="overlay" class="overlay hidden" onclick="closeModal()">
+        <div class="win-content" onclick="event.stopPropagation()">
             <div id="modal-body"></div>
-            <button onclick="closeModal()" class="main-btn">Kapat</button>
         </div>
     </div>
 
