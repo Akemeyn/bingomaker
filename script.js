@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-import { getDatabase, ref, set, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+import { getDatabase, ref, set, get, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDUFrvnDFeVXFgZaTW_E92QAbkLgig2NcY",
@@ -27,12 +27,30 @@ window.onload = function() {
     else showScreen('setup-screen');
 };
 
-window.loginUser = function() {
+window.loginUser = async function() {
     const nick = document.getElementById('nickname-input').value.trim();
     if (!nick) return alert("Lütfen bir isim girin!");
+    
     currentUser.name = nick;
     currentUser.id = "user_" + Math.random().toString(36).substr(2, 9);
-    currentUser.color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+    
+    const playersRef = ref(db, 'players');
+    const snapshot = await get(playersRef);
+    let usedColors = [];
+    
+    if (snapshot.exists()) {
+        const playersData = snapshot.val();
+        usedColors = Object.values(playersData).map(p => p.color);
+    }
+    
+    const availableColors = colorPalette.filter(color => !usedColors.includes(color));
+    
+    if (availableColors.length > 0) {
+        currentUser.color = availableColors[Math.floor(Math.random() * availableColors.length)];
+    } else {
+        currentUser.color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+    }
+    
     const urlParams = new URLSearchParams(window.location.search);
     const data = urlParams.get('items');
     showScreen('game-screen');
