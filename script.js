@@ -34,7 +34,6 @@ window.loginUser = async function() {
     currentUser.name = nick;
     currentUser.id = "user_" + Math.random().toString(36).substr(2, 9);
     
-    // RENK KONTROLÜ: Veritabanındaki aktif renkleri çek
     const playersRef = ref(db, 'players');
     const snapshot = await get(playersRef);
     let usedColors = [];
@@ -44,7 +43,6 @@ window.loginUser = async function() {
         usedColors = Object.values(playersData).map(p => p.color);
     }
     
-    // Boştaki renkleri filtrele
     const availableColors = colorPalette.filter(color => !usedColors.includes(color));
     
     if (availableColors.length > 0) {
@@ -82,13 +80,11 @@ window.generateLink = function() {
     document.getElementById('link-result').classList.remove('hidden');
 };
 
-// TEK VE GÜNCELLENMİŞ setupBingo FONKSİYONU
 function setupBingo(encodedData) {
     const decoded = decodeURIComponent(escape(atob(encodedData)));
     bingoItems = decoded.split('|').sort(() => Math.random() - 0.5);
     const userRef = ref(db, 'players/' + currentUser.id);
     
-    // İlk kayıt
     set(userRef, { 
         name: currentUser.name, 
         selections: mySelections, 
@@ -97,16 +93,11 @@ function setupBingo(encodedData) {
         isOnline: true 
     });
     
-    // Bağlantı koptuğunda offline yap (ama silme)
     onDisconnect(userRef).update({ isOnline: false });
     
-    // Mobil uykudan uyanma kontrolü
     document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === 'visible') {
-            set(ref(db, `players/${currentUser.id}/isOnline`), true);
-        } else {
-            set(ref(db, `players/${currentUser.id}/isOnline`), false);
-        }
+        const statusRef = ref(db, `players/${currentUser.id}/isOnline`);
+        set(statusRef, document.visibilityState === 'visible');
     });
 
     renderBoard();
@@ -151,6 +142,7 @@ function listenOnlinePlayers() {
             const player = players[id];
             const card = document.createElement('div');
             card.className = 'mini-player-card';
+            if (!player.isOnline) card.classList.add('offline');
             
             const statusIcon = player.isOnline ? "🟢" : "⚪";
             const statusText = player.isOnline ? "Çevrimiçi" : "Uykuda";
