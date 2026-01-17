@@ -15,7 +15,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Renk Paleti
 const colorPalette = ["#E38B23", "#A17CE9", "#F374CF", "#7AF0BD", "#77BEDE", "#DA4B49"];
 let currentUser = { id: null, name: "", color: "" };
 let mySelections = [12];
@@ -30,11 +29,10 @@ window.onload = function() {
 
 window.loginUser = function() {
     const nick = document.getElementById('nickname-input').value.trim();
-    if (!nick) return alert("Lütfen bir isim girin!");
+    if (!nick) return alert("İsim giriniz!");
     
     currentUser.name = nick;
     currentUser.id = "user_" + Math.random().toString(36).substr(2, 9);
-    // Rastgele Renk Atama
     currentUser.color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
     
     const urlParams = new URLSearchParams(window.location.search);
@@ -59,7 +57,7 @@ window.updateEditor = function() {
 window.generateLink = function() {
     const text = document.getElementById('list-input').value.trim();
     const items = text.split('\n').filter(i => i.trim() !== "");
-    if (items.length < 24) { alert("En az 24 madde yazmalısınız!"); return; }
+    if (items.length < 24) { alert("En az 24 madde!"); return; }
     const encoded = btoa(unescape(encodeURIComponent(items.join('|'))));
     const url = window.location.origin + window.location.pathname + "?items=" + encoded;
     document.getElementById('share-url').value = url;
@@ -70,15 +68,12 @@ function setupBingo(encodedData) {
     const decoded = decodeURIComponent(escape(atob(encodedData)));
     bingoItems = decoded.split('|').sort(() => Math.random() - 0.5);
     const userRef = ref(db, 'players/' + currentUser.id);
-    
-    // Veritabanına Rengi de kaydediyoruz
     set(userRef, { 
         name: currentUser.name, 
         selections: mySelections, 
         items: bingoItems,
         color: currentUser.color 
     });
-    
     onDisconnect(userRef).remove();
     renderBoard();
     listenOnlinePlayers();
@@ -90,13 +85,9 @@ function renderBoard() {
     for (let i = 0; i < 25; i++) {
         const cell = document.createElement('div');
         cell.className = 'cell' + (i === 12 ? ' free selected' : '');
-        
-        // Seçili ise kullanıcıya özel rengi bas
         if (mySelections.includes(i)) {
             cell.style.backgroundColor = currentUser.color;
-            cell.style.transform = "scale(0.95)";
         }
-
         if (i === 12) {
             cell.innerText = "⭐ JOKER";
         } else {
@@ -109,6 +100,7 @@ function renderBoard() {
 }
 
 function toggleCell(i) {
+    if (i === 12) return;
     if (mySelections.includes(i)) {
         mySelections = mySelections.filter(item => item !== i);
     } else {
@@ -119,24 +111,20 @@ function toggleCell(i) {
     checkWin();
 }
 
-// ANLIK İZLEME: Listeyi her güncellemede komple yeniden çizer
 function listenOnlinePlayers() {
     onValue(ref(db, 'players'), (snapshot) => {
         const players = snapshot.val();
         const container = document.getElementById('others-container');
         container.innerHTML = '';
-        
+        if (!players) return;
         for (let id in players) {
             if (id === currentUser.id) continue;
-            
             const player = players[id];
             const card = document.createElement('div');
             card.className = 'mini-player-card';
             card.innerHTML = `<span class="mini-name">🟢 ${player.name}</span>`;
-            
             const grid = document.createElement('div');
             grid.className = 'mini-grid';
-            
             for (let i = 0; i < 25; i++) {
                 const mc = document.createElement('div');
                 mc.className = 'mini-cell';
@@ -159,7 +147,7 @@ function checkWin() {
     ];
     for (let combo of winCombos) {
         if (combo.every(idx => mySelections.includes(idx))) {
-            document.getElementById('modal-body').innerHTML = "<h2>🎉 BİNGO! 🎉</h2><p>Tebrikler, kazandınız!</p>";
+            document.getElementById('modal-body').innerHTML = "<h2>🎉 BİNGO! 🎉</h2>";
             document.getElementById('overlay').classList.remove('hidden');
             break;
         }
@@ -170,5 +158,5 @@ window.closeModal = function() { document.getElementById('overlay').classList.ad
 window.copyLink = function() {
     const el = document.getElementById('share-url');
     el.select(); document.execCommand('copy');
-    alert("Link kopyalandı!");
+    alert("Kopyalandı!");
 };
