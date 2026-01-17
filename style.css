@@ -21,11 +21,18 @@ body {
 
 .screen.hidden { display: none; }
 
-.bingo-logo { 
-    max-width: 180px; 
+.logo-wrapper {
     width: 100%;
-    height: auto; 
-    margin-bottom: 10px; 
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.bingo-logo { 
+    max-width: 250px; 
+    width: 100%;
+    max-height: 120px;
+    object-fit: contain;
 }
 
 .editor-container {
@@ -49,19 +56,19 @@ body {
     margin-bottom: 20px;
     border: 1px solid #ddd;
     border-radius: 5px;
-    font-size: 16px;
 }
 
 .main-btn {
     background: #27ae60;
     color: white;
     border: none;
-    padding: 10px 16px;
+    padding: 8px 16px;
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
     width: 100%;
     max-width: 250px;
+    height: 40px;
     font-size: 14px;
     margin: 10px auto;
     display: block;
@@ -70,15 +77,10 @@ body {
 
 .game-layout {
     display: flex;
-    flex-direction: row;
     gap: 20px;
-    justify-content: center;
 }
 
-.board-area { 
-    flex: 2; 
-    min-width: 0; 
-}
+.board-area { flex: 2; min-width: 0; }
 
 .online-area {
     flex: 1;
@@ -98,7 +100,7 @@ body {
     margin-bottom: 10px;
 }
 
-.mini-name { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: block; overflow: hidden; text-overflow: ellipsis; }
+.mini-name { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: block; }
 
 .mini-grid {
     display: grid;
@@ -108,17 +110,12 @@ body {
     margin: 0 auto;
 }
 
-.mini-cell {
-    width: 14px;
-    height: 14px;
-    border: 1px solid #ddd;
-    background: #fff;
-}
+.mini-cell { width: 14px; height: 14px; border: 1px solid #ddd; background: #fff; }
 
 .board {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 4px;
+    gap: 5px;
     margin-top: 10px;
 }
 
@@ -128,16 +125,13 @@ body {
     display: flex; 
     align-items: center; 
     justify-content: center;
-    font-size: 9px; 
+    font-size: 10px; 
     font-weight: bold; 
     cursor: pointer;
-    padding: 2px; 
     background: #fff; 
     word-break: break-word;
     box-sizing: border-box;
 }
-
-.cell.selected { transform: scale(0.96); }
 
 .link-box {
     display: flex;
@@ -146,10 +140,8 @@ body {
     align-items: center;
     margin-top: 15px;
 }
-
-#share-url { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
-
-.reset-btn { background: #3498db; margin-top: 20px; width: 100%; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+#share-url { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+.reset-btn { background: #3498db; margin-top: 20px; width: 100%; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
 
 .overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -164,6 +156,7 @@ body {
 @media (max-width: 768px) {
     .game-layout { flex-direction: column; }
     .board-area { width: 100%; }
-    .online-area { width: 100%; max-height: 300px; }
+    .online-area { width: 100%; }
     .cell { font-size: 8px; }
+    .bingo-logo { max-width: 180px; }
 }

@@ -29,7 +29,7 @@ window.onload = function() {
 
 window.loginUser = function() {
     const nick = document.getElementById('nickname-input').value.trim();
-    if (!nick) return alert("İsim giriniz!");
+    if (!nick) return alert("Lütfen bir isim girin!");
     
     currentUser.name = nick;
     currentUser.id = "user_" + Math.random().toString(36).substr(2, 9);
@@ -57,7 +57,7 @@ window.updateEditor = function() {
 window.generateLink = function() {
     const text = document.getElementById('list-input').value.trim();
     const items = text.split('\n').filter(i => i.trim() !== "");
-    if (items.length < 24) { alert("En az 24 madde!"); return; }
+    if (items.length < 24) { alert("En az 24 madde yazmalısınız!"); return; }
     const encoded = btoa(unescape(encodeURIComponent(items.join('|'))));
     const url = window.location.origin + window.location.pathname + "?items=" + encoded;
     document.getElementById('share-url').value = url;
@@ -68,12 +68,7 @@ function setupBingo(encodedData) {
     const decoded = decodeURIComponent(escape(atob(encodedData)));
     bingoItems = decoded.split('|').sort(() => Math.random() - 0.5);
     const userRef = ref(db, 'players/' + currentUser.id);
-    set(userRef, { 
-        name: currentUser.name, 
-        selections: mySelections, 
-        items: bingoItems,
-        color: currentUser.color 
-    });
+    set(userRef, { name: currentUser.name, selections: mySelections, items: bingoItems, color: currentUser.color });
     onDisconnect(userRef).remove();
     renderBoard();
     listenOnlinePlayers();
@@ -85,9 +80,7 @@ function renderBoard() {
     for (let i = 0; i < 25; i++) {
         const cell = document.createElement('div');
         cell.className = 'cell' + (i === 12 ? ' free selected' : '');
-        if (mySelections.includes(i)) {
-            cell.style.backgroundColor = currentUser.color;
-        }
+        if (mySelections.includes(i)) cell.style.backgroundColor = currentUser.color;
         if (i === 12) {
             cell.innerText = "⭐ JOKER";
         } else {
@@ -101,11 +94,8 @@ function renderBoard() {
 
 function toggleCell(i) {
     if (i === 12) return;
-    if (mySelections.includes(i)) {
-        mySelections = mySelections.filter(item => item !== i);
-    } else {
-        mySelections.push(i);
-    }
+    if (mySelections.includes(i)) mySelections = mySelections.filter(item => item !== i);
+    else mySelections.push(i);
     set(ref(db, `players/${currentUser.id}/selections`), mySelections);
     renderBoard();
     checkWin();
@@ -128,9 +118,7 @@ function listenOnlinePlayers() {
             for (let i = 0; i < 25; i++) {
                 const mc = document.createElement('div');
                 mc.className = 'mini-cell';
-                if (player.selections && player.selections.includes(i)) {
-                    mc.style.backgroundColor = player.color || "#f1c40f";
-                }
+                if (player.selections && player.selections.includes(i)) mc.style.backgroundColor = player.color || "#f1c40f";
                 grid.appendChild(mc);
             }
             card.appendChild(grid);
@@ -140,11 +128,7 @@ function listenOnlinePlayers() {
 }
 
 function checkWin() {
-    const winCombos = [
-        [0,1,2,3,4], [5,6,7,8,9], [10,11,12,13,14], [15,16,17,18,19], [20,21,22,23,24],
-        [0,5,10,15,20], [1,6,11,16,21], [2,7,12,17,22], [3,8,13,18,23], [4,9,14,19,24],
-        [0,6,12,18,24], [4,8,12,16,20]
-    ];
+    const winCombos = [[0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],[0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],[0,6,12,18,24],[4,8,12,16,20]];
     for (let combo of winCombos) {
         if (combo.every(idx => mySelections.includes(idx))) {
             document.getElementById('modal-body').innerHTML = "<h2>🎉 BİNGO! 🎉</h2>";
@@ -158,5 +142,5 @@ window.closeModal = function() { document.getElementById('overlay').classList.ad
 window.copyLink = function() {
     const el = document.getElementById('share-url');
     el.select(); document.execCommand('copy');
-    alert("Kopyalandı!");
+    alert("Link kopyalandı!");
 };
