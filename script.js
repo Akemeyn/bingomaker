@@ -110,7 +110,7 @@ function listenOnlinePlayers() {
             const player = players[id];
             const card = document.createElement('div');
             card.className = 'mini-player-card';
-            card.innerHTML = `<span class="mini-name">🟢 ${player.name} (İzlemek için tıkla)</span>`;
+            card.innerHTML = `<span class="mini-name">🟢 ${player.name}</span>`;
             const grid = document.createElement('div');
             grid.className = 'mini-grid';
             for (let i = 0; i < 25; i++) {
@@ -128,7 +128,7 @@ function listenOnlinePlayers() {
 
 function viewOther(player) {
     const body = document.getElementById('modal-body');
-    body.innerHTML = `<h3>${player.name} Kartı</h3><div class="board" id="mini-board-modal"></div><p style="font-size:12px; color:#666;">Kapatmak için dışarıya tıklayın.</p>`;
+    body.innerHTML = `<h3>${player.name} Kartı</h3><div class="board" id="mini-board-modal"></div><p style="font-size:12px; color:#666; margin-top:10px;">Kapatmak için dışarıya tıklayın.</p>`;
     const miniBoard = document.getElementById('mini-board-modal');
     for (let i = 0; i < 25; i++) {
         const cell = document.createElement('div');
@@ -149,8 +149,14 @@ function checkWin() {
     for (let combo of winCombos) {
         if (combo.every(idx => mySelections.includes(idx))) {
             const body = document.getElementById('modal-body');
-            // BUTON SADECE BURADA EKLENİYOR
-            body.innerHTML = `<h2>🎉 BİNGO! 🎉</h2><p>Tebrikler, kazandınız!</p><button onclick="closeModal()" class="main-btn">Kapat</button>`;
+            body.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                    <img src="Bingologo.png" style="max-height:80px; margin-bottom:15px;">
+                    <h2>🎉 BİNGO! 🎉</h2>
+                    <p>Tebrikler Mahmut Demir, kazandın!</p>
+                    <button onclick="closeModal()" class="main-btn" style="margin-top:15px;">Kapat</button>
+                </div>
+            `;
             document.getElementById('overlay').classList.remove('hidden');
             break;
         }
