@@ -34,6 +34,7 @@ window.loginUser = async function() {
     currentUser.name = nick;
     currentUser.id = "user_" + Math.random().toString(36).substr(2, 9);
     
+    // RENK KONTROLÜ: Veritabanındaki aktif renkleri çek
     const playersRef = ref(db, 'players');
     const snapshot = await get(playersRef);
     let usedColors = [];
@@ -43,6 +44,7 @@ window.loginUser = async function() {
         usedColors = Object.values(playersData).map(p => p.color);
     }
     
+    // Boştaki renkleri filtrele
     const availableColors = colorPalette.filter(color => !usedColors.includes(color));
     
     if (availableColors.length > 0) {
@@ -80,12 +82,33 @@ window.generateLink = function() {
     document.getElementById('link-result').classList.remove('hidden');
 };
 
+// TEK VE GÜNCELLENMİŞ setupBingo FONKSİYONU
 function setupBingo(encodedData) {
     const decoded = decodeURIComponent(escape(atob(encodedData)));
     bingoItems = decoded.split('|').sort(() => Math.random() - 0.5);
     const userRef = ref(db, 'players/' + currentUser.id);
-    set(userRef, { name: currentUser.name, selections: mySelections, items: bingoItems, color: currentUser.color });
-    onDisconnect(userRef).remove();
+    
+    // İlk kayıt
+    set(userRef, { 
+        name: currentUser.name, 
+        selections: mySelections, 
+        items: bingoItems, 
+        color: currentUser.color,
+        isOnline: true 
+    });
+    
+    // Bağlantı koptuğunda offline yap (ama silme)
+    onDisconnect(userRef).update({ isOnline: false });
+    
+    // Mobil uykudan uyanma kontrolü
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === 'visible') {
+            set(ref(db, `players/${currentUser.id}/isOnline`), true);
+        } else {
+            set(ref(db, `players/${currentUser.id}/isOnline`), false);
+        }
+    });
+
     renderBoard();
     listenOnlinePlayers();
 }
@@ -115,34 +138,6 @@ function toggleCell(i) {
     set(ref(db, `players/${currentUser.id}/selections`), mySelections);
     renderBoard();
     checkWin();
-}
-
-
-function setupBingo(encodedData) {
-    const decoded = decodeURIComponent(escape(atob(encodedData)));
-    bingoItems = decoded.split('|').sort(() => Math.random() - 0.5);
-    const userRef = ref(db, 'players/' + currentUser.id);
-    
-    set(userRef, { 
-        name: currentUser.name, 
-        selections: mySelections, 
-        items: bingoItems, 
-        color: currentUser.color,
-        isOnline: true 
-    });
-    
-    onDisconnect(userRef).update({ isOnline: false });
-    
-    document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === 'visible') {
-            set(ref(db, `players/${currentUser.id}/isOnline`), true);
-        } else {
-            set(ref(db, `players/${currentUser.id}/isOnline`), false);
-        }
-    });
-
-    renderBoard();
-    listenOnlinePlayers();
 }
 
 function listenOnlinePlayers() {
