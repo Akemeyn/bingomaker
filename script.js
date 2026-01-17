@@ -152,8 +152,7 @@ function checkWin() {
             body.innerHTML = `
                 <div style="display:flex; flex-direction:column; align-items:center;">
                     <img src="Bingologo.png" style="max-height:80px; margin-bottom:15px;">
-                    <h2>🎉 BİNGO! 🎉</h2>
-                    <p>Tebrikler Mahmut Demir, kazandın!</p>
+                    <p>Tebrikler kazandın!</p>
                     <button onclick="closeModal()" class="main-btn" style="margin-top:15px;">Kapat</button>
                 </div>
             `;
