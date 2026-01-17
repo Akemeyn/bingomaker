@@ -17,6 +17,7 @@ body {
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     text-align: center;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .screen.hidden { display: none; }
@@ -33,6 +34,7 @@ body {
     height: auto; 
     max-height: 100px;
     object-fit: contain;
+    display: block;
 }
 
 .editor-container {
@@ -68,6 +70,7 @@ body {
     flex-wrap: wrap;
     gap: 20px;
     justify-content: center;
+    width: 100%;
 }
 
 .board-area { 
@@ -83,6 +86,17 @@ body {
     border: 1px solid #eee;
     max-height: 500px;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+#others-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .mini-player-card {
@@ -90,7 +104,9 @@ body {
     border: 1px solid #ddd;
     padding: 10px;
     border-radius: 5px;
-    margin-bottom: 15px;
+    margin: 0 auto 15px auto;
+    width: 90%;
+    box-sizing: border-box;
 }
 
 .mini-grid {
@@ -109,6 +125,7 @@ body {
     gap: 4px;
     margin-top: 10px;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .cell {
@@ -129,8 +146,9 @@ body {
 
 @media (max-width: 768px) {
     .container { padding: 10px; }
-    .game-layout { flex-direction: column; }
-    .online-area { max-height: 300px; width: 100%; }
+    .game-layout { flex-direction: column; align-items: center; }
+    .online-area { max-height: 400px; width: 100%; margin-top: 10px; }
     .board-area { width: 100%; }
     .cell { font-size: 8px; }
+    .mini-player-card { width: 100%; }
 }
