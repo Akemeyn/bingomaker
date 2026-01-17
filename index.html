@@ -9,7 +9,14 @@
 <body>
 
     <div class="container">
-        <div id="setup-screen" class="screen">
+        <div id="login-screen" class="screen hidden">
+            <h1>Bingo'ya Katıl</h1>
+            <p>Devam etmek için bir takma ad girin:</p>
+            <input type="text" id="nickname-input" placeholder="Takma adınız...">
+            <button onclick="loginUser()" class="main-btn">Oyuna Başla</button>
+        </div>
+
+        <div id="setup-screen" class="screen hidden">
             <h1>Bingo Kartı Hazırla</h1>
             <p>Maddelerinizi yazın (Her satıra bir tane):</p>
             <div class="editor-container">
@@ -28,21 +35,28 @@
         </div>
 
         <div id="game-screen" class="screen hidden">
-            <h1 id="game-title">Bingo Kartın</h1>
-            <div id="bingo-board" class="board"></div>
-            <p class="info-text">5'li sıra yap ve kazan!</p>
+            <div class="game-layout">
+                <div class="board-area">
+                    <h1 id="game-title">Bingo Kartın</h1>
+                    <div id="bingo-board" class="board"></div>
+                    <p class="info-text">5'li sıra yap ve kazan!</p>
+                </div>
+                <div class="online-area">
+                    <h3>Oyuncular</h3>
+                    <ul id="online-list"></ul>
+                </div>
+            </div>
             <button onclick="window.location.search = ''" class="reset-btn">Yeni Liste Yaz</button>
         </div>
     </div>
 
-    <div id="win-overlay" class="overlay hidden">
+    <div id="overlay" class="overlay hidden">
         <div class="win-content">
-            <h2>🎉 BİNGO! 🎉</h2>
-            <p>Tebrikler, kazandınız!</p>
-            <button onclick="closeWinMessage()">Tamam</button>
+            <div id="modal-body"></div>
+            <button onclick="closeModal()" class="main-btn">Kapat</button>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
