@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Oluşturucu</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <div id="setup-screen" class="screen">
+            <h1>Bingo Kartı Hazırla</h1>
+            <p>Maddelerinizi yazın (Her satıra bir tane):</p>
+            <div class="editor-container">
+                <textarea id="list-input" placeholder="Her satıra bir madde yazıp Enter'a basın..." oninput="updateEditor()"></textarea>
+            </div>
+            <div id="counter">Madde Sayısı: 0 / 24</div>
+            <button onclick="generateLink()" class="main-btn">Paylaşım Linki Oluştur</button>
+            
+            <div id="link-result" class="hidden">
+                <p>Kartınız hazır! Bu linki paylaşın:</p>
+                <div class="link-box">
+                    <div><input type="text" id="share-url" readonly></div>
+                    <button onclick="copyLink()" class="main-btn other-main-btn">Kopyala</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen hidden">
+            <h1 id="game-title">Bingo Kartın</h1>
+            <div id="bingo-board" class="board"></div>
+            <p class="info-text">5'li sıra yap ve kazan!</p>
+            <button onclick="window.location.search = ''" class="reset-btn">Yeni Liste Yaz</button>
+        </div>
+    </div>
+
+    <div id="win-overlay" class="overlay hidden">
+        <div class="win-content">
+            <h2>🎉 BİNGO! 🎉</h2>
+            <p>Tebrikler, kazandınız!</p>
+            <button onclick="closeWinMessage()">Tamam</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

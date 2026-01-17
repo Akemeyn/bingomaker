@@ -1,0 +1,123 @@
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    width: 100%;
+    max-width: 500px;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.screen.hidden { display: none; }
+
+.editor-container {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    height: 250px;
+    margin-top: 10px;
+    background: #fff;
+}
+
+#list-input {
+    width: 100%; height: 100%; border: none; outline: none;
+    padding: 15px; box-sizing: border-box; font-size: 16px;
+    line-height: 1.5; resize: none; font-family: inherit;
+}
+
+#counter { margin: 15px 0; font-weight: bold; color: #e67e22; }
+
+.main-btn {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 250px;
+    height: 40px;
+    font-size: 14px;
+    margin: 10px auto;
+    display: inline-block;
+    transition: 0.3s;
+}
+
+.main-btn:hover {
+    background: #219150;
+    transform: scale(1.05);
+}
+
+.other-main-btn{
+    width: 200px;
+}
+
+/* Bingo Tablosu */
+.board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.cell {
+    aspect-ratio: 1/1; border: 2px solid #333;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: bold; cursor: pointer;
+    padding: 5px; background: #fff; word-break: break-word;
+    transition: 0.2s;
+}
+
+.cell.selected {
+    background-color: #f1c40f;
+    color: #000;
+    transform: scale(0.95);
+}
+
+.cell.free { background-color: #eee; cursor: default; }
+
+/* Butonlar */
+button {
+    background: #27ae60; color: white; border: none;
+    padding: 12px 20px; border-radius: 5px; cursor: pointer;
+    font-weight: bold; width: 100%;
+}
+
+.link-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    margin-top: 15px;
+}
+#share-url { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+.reset-btn { background: #3498db; margin-top: 20px; }
+
+.overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8); display: flex;
+    justify-content: center; align-items: center; z-index: 100;
+}
+
+.overlay.hidden { display: none; }
+
+.win-content {
+    background: white; padding: 40px; border-radius: 15px;
+    text-align: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.win-content h2 { color: #f1c40f; font-size: 3rem; margin: 0; }
+.win-content button { background: #2ecc71; margin-top: 20px; width: auto; padding: 10px 40px; }
+
+@keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
