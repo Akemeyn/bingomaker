@@ -78,21 +78,40 @@ async function initPersistentProfile(nick) {
     const urlParams = new URLSearchParams(window.location.search);
     const encodedData = urlParams.get('items');
     if (!encodedData) return;
+
     try {
         const decoded = decodeURIComponent(escape(atob(encodedData)));
         const shuffledItems = decoded.split('|').sort(() => Math.random() - 0.5);
+
+        const nameMapSnapshot = await get(ref(db, 'nameMap'));
+        let displayName = nick;
+
+        if (nameMapSnapshot.exists()) {
+            const nameMap = nameMapSnapshot.val();
+            const cleanNick = nick.toLowerCase();
+            if (nameMap[cleanNick]) {
+                displayName = nameMap[cleanNick];
+            }
+        }
+
         const usersSnapshot = await get(ref(db, 'users'));
         let usedColors = [];
-        if (usersSnapshot.exists()) usedColors = Object.values(usersSnapshot.val()).map(u => u.color);
+        if (usersSnapshot.exists()) {
+            usedColors = Object.values(usersSnapshot.val()).map(u => u.color);
+        }
         const available = colorPalette.filter(c => !usedColors.includes(c));
         const finalColor = available.length > 0 ? available[0] : colorPalette[0];
+
         await set(ref(db, 'users/' + currentUser.uid), {
-            name: nick,
+            name: displayName,
             color: finalColor,
             bingoItems: shuffledItems
         });
+        
         await loadPersistentProfile();
-    } catch (e) { alert("Profil oluşturma hatası: " + e.message); }
+    } catch (e) {
+        alert("Profil oluşturma hatası: " + e.message);
+    }
 }
 
 async function loadPersistentProfile() {
