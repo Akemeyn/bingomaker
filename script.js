@@ -55,37 +55,35 @@ window.onload = function() {
 
 
 window.loginUser = async function() {
+    const nick = document.getElementById('nickname-input').value.trim();
+    const pass = document.getElementById('password-input').value.trim();
+    
+    if (!nick || !pass) return alert("Lütfen kullanıcı adı ve şifre girin!");
+
+    const email = `${nick.toLowerCase()}@bingo.com`;
+
     try {
-        const nickInput = document.getElementById('nickname-input');
-        const passInput = document.getElementById('password-input');
+        const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+        currentUser.uid = userCredential.user.uid;
         
-        if (!nickInput || !passInput) {
-            return alert("Giriş alanları HTML içinde bulunamadı!");
-        }
-
-        const nick = nickInput.value.trim();
-        const pass = passInput.value.trim();
+        const snapshot = await get(ref(db, 'users/' + currentUser.uid));
         
-        if (!nick || !pass) return alert("Lütfen kullanıcı adı ve şifre girin!");
-        if (pass.length < 6) return alert("Şifre en az 6 karakter olmalıdır!");
-
-        const email = `${nick.toLowerCase()}@bingo.com`;
-
-        try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-            currentUser.uid = userCredential.user.uid;
+        if (snapshot.exists()) {
             await loadPersistentProfile();
-        } catch (error) {
-            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                const newUser = await createUserWithEmailAndPassword(auth, email, pass);
-                currentUser.uid = newUser.user.uid;
+        } else {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('items')) {
                 await initPersistentProfile(nick);
             } else {
-                alert("Giriş Hatası: " + error.code);
+                alert("Hoş geldiniz! Henüz bir bingo kartınız yok. Lütfen bir liste oluşturun.");
+                showScreen('setup-screen');
             }
         }
-    } catch (e) {
-        alert("Giriş fonksiyonunda hata (undefined): " + e.message);
+    } catch (error) {
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+        } else {
+            alert("Giriş başarısız: " + error.code);
+        }
     }
 };
 
