@@ -10,15 +10,17 @@
 
     <div class="container">
         <div id="login-screen" class="screen hidden">
+            <div class="logo-wrapper">
+                <img src="Bingologo.png" alt="Bingo" class="bingo-logo">
+            </div>
             <h1>Bingo'ya Katıl</h1>
-            <p>Devam etmek için bir takma ad girin:</p>
-            <input type="text" id="nickname-input" placeholder="Takma adınız...">
-            <button onclick="loginUser()" class="main-btn">Oyuna Başla</button>
+            <p>Devam etmek için giriş yapın veya kayıt olun:</p>
+            <input type="text" id="nickname-input" placeholder="Kullanıcı adınız...">
+            <input type="password" id="password-input" placeholder="Şifreniz..."> <button onclick="loginUser()" class="main-btn">Oyuna Başla</button>
         </div>
 
         <div id="setup-screen" class="screen hidden">
             <h1>Bingo Kartı Hazırla</h1>
-            <p>Maddelerinizi yazın (Her satıra bir tane):</p>
             <div class="editor-container">
                 <textarea id="list-input" placeholder="Her satıra bir madde yazıp Enter'a basın..." oninput="updateEditor()"></textarea>
             </div>
@@ -26,7 +28,6 @@
             <button onclick="generateLink()" class="main-btn">Paylaşım Linki Oluştur</button>
             
             <div id="link-result" class="hidden">
-                <p>Kartınız hazır! Bu linki paylaşın:</p>
                 <div class="link-box">
                     <div><input type="text" id="share-url" readonly></div>
                     <button onclick="copyLink()" class="main-btn other-main-btn">Kopyala</button>
