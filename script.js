@@ -13,58 +13,104 @@ const firebaseConfig = {
   measurementId: "G-2QTPD8F3CE"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const auth = getAuth(app);
+let app, db, auth;
+try {
+    app = initializeApp(firebaseConfig);
+    db = getDatabase(app);
+    auth = getAuth(app);
+} catch (e) {
+    alert("Firebase başlatılamadı: " + e.message);
+}
 
 const colorPalette = ["#E38B23", "#A17CE9", "#F374CF", "#7AF0BD", "#77BEDE", "#DA4B49"];
 let currentUser = { uid: null, name: "", color: "" };
 let mySelections = [12];
 let bingoItems = [];
 
-window.onload = function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('items')) {
-        showScreen('login-screen');
+
+function showScreen(id) {
+    const screens = document.querySelectorAll('.screen');
+    screens.forEach(s => s.classList.add('hidden'));
+    const target = document.getElementById(id);
+    if (target) {
+        target.classList.remove('hidden');
     } else {
-        showScreen('setup-screen');
+        console.error("HATA: '" + id + "' ID'li ekran bulunamadı!");
+    }
+}
+
+window.onload = function() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const data = urlParams.get('items');
+        if (data) {
+            showScreen('login-screen');
+        } else {
+            showScreen('setup-screen');
+        }
+    } catch (e) {
+        alert("Sayfa yükleme hatası (undefined kontrolü): " + e.message);
     }
 };
 
+
 window.loginUser = async function() {
-    const nick = document.getElementById('nickname-input').value.trim();
-    const pass = document.getElementById('password-input').value.trim();
-    
-    if (!nick || !pass) return alert("Lütfen kullanıcı adı ve şifre girin!");
-    if (pass.length < 6) return alert("Şifre en az 6 karakter olmalıdır!");
-
-    const email = `${nick.toLowerCase()}@bingo.com`;
-
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-        currentUser.uid = userCredential.user.uid;
-        await loadPersistentProfile();
-    } catch (error) {
-        console.error("Firebase Hatası:", error.code);
+        const nickInput = document.getElementById('nickname-input');
+        const passInput = document.getElementById('password-input');
         
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-            try {
+        if (!nickInput || !passInput) {
+            return alert("Giriş alanları HTML içinde bulunamadı!");
+        }
+
+        const nick = nickInput.value.trim();
+        const pass = passInput.value.trim();
+        
+        if (!nick || !pass) return alert("Lütfen kullanıcı adı ve şifre girin!");
+        if (pass.length < 6) return alert("Şifre en az 6 karakter olmalıdır!");
+
+        const email = `${nick.toLowerCase()}@bingo.com`;
+
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+            currentUser.uid = userCredential.user.uid;
+            await loadPersistentProfile();
+        } catch (error) {
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
                 const newUser = await createUserWithEmailAndPassword(auth, email, pass);
                 currentUser.uid = newUser.user.uid;
                 await initPersistentProfile(nick);
-            } catch (err) {
-                alert("Giriş başarısız. Şifre yanlış olabilir veya kullanıcı adı alınmıştır.");
+            } else {
+                alert("Giriş Hatası: " + error.code);
             }
-        } else {
-            alert("Bir hata oluştu: " + error.code);
         }
+    } catch (e) {
+        alert("Giriş fonksiyonunda hata (undefined): " + e.message);
     }
 };
+
+async function loadPersistentProfile() {
+    try {
+        const snapshot = await get(ref(db, 'users/' + currentUser.uid));
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            currentUser.name = data.name;
+            currentUser.color = data.color;
+            bingoItems = data.bingoItems;
+            showScreen('game-screen');
+            startLiveSession();
+        } else {
+            alert("Profil verisi veritabanında bulunamadı.");
+        }
+    } catch (e) {
+        alert("Profil yükleme hatası: " + e.message);
+    }
+}
 
 async function initPersistentProfile(nick) {
     const urlParams = new URLSearchParams(window.location.search);
     const encodedData = urlParams.get('items');
-    if (!encodedData) return alert("Önce bir bingo listesi oluşturmalısın!");
+    if (!encodedData) return alert("Hata: URL'de bingo listesi yok!");
 
     const decoded = decodeURIComponent(escape(atob(encodedData)));
     const shuffledItems = decoded.split('|').sort(() => Math.random() - 0.5);
@@ -82,27 +128,7 @@ async function initPersistentProfile(nick) {
         color: finalColor,
         bingoItems: shuffledItems
     });
-    
     await loadPersistentProfile();
-}
-
-async function loadPersistentProfile() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const encodedData = urlParams.get('items');
-    
-    const snapshot = await get(ref(db, 'users/' + currentUser.uid));
-    if (snapshot.exists()) {
-        const data = snapshot.val();
-        currentUser.name = data.name;
-        currentUser.color = data.color;
-        
-        bingoItems = data.bingoItems;
-
-        showScreen('game-screen');
-        startLiveSession();
-    } else {
-        alert("Profil verisi bulunamadı. Lütfen yeni bir liste oluşturup kaydolun.");
-    }
 }
 
 function startLiveSession() {
@@ -113,46 +139,19 @@ function startLiveSession() {
         selections: mySelections,
         isOnline: true
     });
-
     onDisconnect(liveRef).update({ isOnline: false });
-    
     document.addEventListener("visibilitychange", () => {
         if (currentUser.uid) {
-            update(ref(db, 'players/' + currentUser.uid), { 
-                isOnline: document.visibilityState === 'visible' 
-            });
+            update(ref(db, 'players/' + currentUser.uid), { isOnline: document.visibilityState === 'visible' });
         }
     });
-
     renderBoard();
     listenOnlinePlayers();
 }
 
-function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-}
-
-window.updateEditor = function() {
-    const input = document.getElementById('list-input');
-    const lines = input.value.split('\n').filter(l => l.trim() !== "");
-    const counter = document.getElementById('counter');
-    counter.innerText = `Madde Sayısı: ${lines.length} / 24`;
-    counter.style.color = lines.length >= 24 ? "#27ae60" : "#e67e22";
-};
-
-window.generateLink = function() {
-    const text = document.getElementById('list-input').value.trim();
-    const items = text.split('\n').filter(i => i.trim() !== "");
-    if (items.length < 24) { alert("En az 24 madde yazmalısınız!"); return; }
-    const encoded = btoa(unescape(encodeURIComponent(items.join('|'))));
-    const url = window.location.origin + window.location.pathname + "?items=" + encoded;
-    document.getElementById('share-url').value = url;
-    document.getElementById('link-result').classList.remove('hidden');
-};
-
 function renderBoard() {
     const board = document.getElementById('bingo-board');
+    if (!board) return;
     board.innerHTML = '';
     for (let i = 0; i < 25; i++) {
         const cell = document.createElement('div');
@@ -174,13 +173,13 @@ function toggleCell(i) {
     else mySelections.push(i);
     update(ref(db, 'players/' + currentUser.uid), { selections: mySelections });
     renderBoard();
-    checkWin();
 }
 
 function listenOnlinePlayers() {
     onValue(ref(db, 'players'), (snapshot) => {
         const players = snapshot.val();
         const container = document.getElementById('others-container');
+        if (!container) return;
         container.innerHTML = '';
         if (!players) return;
         for (let id in players) {
@@ -188,7 +187,7 @@ function listenOnlinePlayers() {
             const player = players[id];
             const card = document.createElement('div');
             card.className = 'mini-player-card' + (player.isOnline ? '' : ' offline');
-            card.innerHTML = `<span class="mini-name">${player.isOnline ? '🟢' : '⚪'} ${player.name} (${player.isOnline ? 'Çevrimiçi' : 'Uykuda'})</span>`;
+            card.innerHTML = `<span class="mini-name">${player.isOnline ? '🟢' : '⚪'} ${player.name}</span>`;
             const grid = document.createElement('div');
             grid.className = 'mini-grid';
             for (let i = 0; i < 25; i++) {
@@ -204,14 +203,41 @@ function listenOnlinePlayers() {
     });
 }
 
+window.updateEditor = function() {
+    const input = document.getElementById('list-input');
+    const counter = document.getElementById('counter');
+    if (!input || !counter) return;
+    const lines = input.value.split('\n').filter(l => l.trim() !== "");
+    counter.innerText = `Madde Sayısı: ${lines.length} / 24`;
+    counter.style.color = lines.length >= 24 ? "#27ae60" : "#e67e22";
+};
+
+window.generateLink = function() {
+    const text = document.getElementById('list-input').value.trim();
+    const items = text.split('\n').filter(i => i.trim() !== "");
+    if (items.length < 24) return alert("En az 24 madde yazmalısınız!");
+    const encoded = btoa(unescape(encodeURIComponent(items.join('|'))));
+    const url = window.location.origin + window.location.pathname + "?items=" + encoded;
+    document.getElementById('share-url').value = url;
+    document.getElementById('link-result').classList.remove('hidden');
+};
+
+window.copyLink = function() {
+    const el = document.getElementById('share-url');
+    if (el) { el.select(); document.execCommand('copy'); alert("Link kopyalandı!"); }
+};
+
+window.closeModal = function() { document.getElementById('overlay').classList.add('hidden'); };
+
 function viewOther(player) {
     const body = document.getElementById('modal-body');
-    body.innerHTML = `<h3>${player.name} Kartı</h3><div class="board" id="mini-board-modal"></div><p style="font-size:12px; color:#666; margin-top:10px;">Kapatmak için dışarıya tıklayın.</p>`;
+    if (!body) return;
+    body.innerHTML = `<h3>${player.name} Kartı</h3><div class="board" id="mini-board-modal"></div>`;
     const miniBoard = document.getElementById('mini-board-modal');
     for (let i = 0; i < 25; i++) {
         const cell = document.createElement('div');
         cell.className = 'cell' + (player.selections.includes(i) ? ' selected' : '');
-        if (player.selections.includes(i)) cell.style.backgroundColor = player.color || "#f1c40f";
+        if (player.selections.includes(i)) cell.style.backgroundColor = player.color;
         if (i === 12) cell.innerText = "⭐";
         else {
             const idx = i > 12 ? i - 1 : i;
@@ -221,22 +247,3 @@ function viewOther(player) {
     }
     document.getElementById('overlay').classList.remove('hidden');
 }
-
-function checkWin() {
-    const winCombos = [[0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],[0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],[0,6,12,18,24],[4,8,12,16,20]];
-    for (let combo of winCombos) {
-        if (combo.every(idx => mySelections.includes(idx))) {
-            const body = document.getElementById('modal-body');
-            body.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center;"><img src="Bingologo.png" style="max-height:80px; margin-bottom:15px;"><h2>🎉 BİNGO! 🎉</h2><p>Tebrikler Atıf Eren, kazandın!</p><button onclick="closeModal()" class="main-btn" style="margin-top:15px;">Kapat</button></div>`;
-            document.getElementById('overlay').classList.remove('hidden');
-            break;
-        }
-    }
-}
-
-window.closeModal = function() { document.getElementById('overlay').classList.add('hidden'); };
-window.copyLink = function() {
-    const el = document.getElementById('share-url');
-    el.select(); document.execCommand('copy');
-    alert("Link kopyalandı!");
-};
