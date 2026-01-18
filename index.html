@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bingo Oluşturucu</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <div class="container">
@@ -16,17 +18,19 @@
             <h1>Bingo'ya Katıl</h1>
             <p>Devam etmek için giriş yapın veya kayıt olun:</p>
             <input type="text" id="nickname-input" placeholder="Kullanıcı adınız...">
-            <input type="password" id="password-input" placeholder="Şifreniz..."> <button onclick="loginUser()" class="main-btn">Oyuna Başla</button>
+            <input type="password" id="password-input" placeholder="Şifreniz..."> <button onclick="loginUser()"
+                class="main-btn">Oyuna Başla</button>
         </div>
 
         <div id="setup-screen" class="screen hidden">
             <h1>Bingo Kartı Hazırla</h1>
             <div class="editor-container">
-                <textarea id="list-input" placeholder="Her satıra bir madde yazıp Enter'a basın..." oninput="updateEditor()"></textarea>
+                <textarea id="list-input" placeholder="Her satıra bir madde yazıp Enter'a basın..."
+                    oninput="updateEditor()"></textarea>
             </div>
             <div id="counter">Madde Sayısı: 0 / 24</div>
             <button onclick="generateLink()" class="main-btn">Paylaşım Linki Oluştur</button>
-            
+
             <div id="link-result" class="hidden">
                 <div class="link-box">
                     <div><input type="text" id="share-url" readonly></div>
@@ -61,4 +65,5 @@
 
     <script type="module" src="script.js"></script>
 </body>
+
 </html>

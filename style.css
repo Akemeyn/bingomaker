@@ -14,24 +14,39 @@ body {
     max-width: 1100px;
     padding: 15px;
     border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     text-align: center;
     box-sizing: border-box;
     overflow: hidden;
 }
 
-.screen.hidden { display: none; }
+.screen.hidden {
+    display: none;
+}
 
-.logo-wrapper { width: 100%; display: flex; justify-content: center; margin-bottom: 10px; }
-.bingo-logo { max-width: 100%; height: auto; max-height: 100px; object-fit: contain; display: block; }
+.logo-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
 
-#nickname-input, #password-input {
+.bingo-logo {
+    max-width: 100%;
+    height: auto;
+    max-height: 100px;
+    object-fit: contain;
+    display: block;
+}
+
+#nickname-input,
+#password-input {
     border: none;
     outline: none;
     border-radius: 15px;
     padding: 1em;
     background-color: #ccc;
-    box-shadow: inset 2px 5px 10px rgba(0,0,0,0.3);
+    box-shadow: inset 2px 5px 10px rgba(0, 0, 0, 0.3);
     transition: 300ms ease-in-out;
     width: 80%;
     max-width: 300px;
@@ -42,19 +57,59 @@ body {
     margin-right: auto;
 }
 
-#nickname-input:focus, #password-input:focus {
+#nickname-input:focus,
+#password-input:focus {
     background-color: white;
     transform: scale(1.05);
     box-shadow: 13px 13px 100px #969696, -13px -13px 100px #ffffff;
 }
 
-.editor-container { border: 2px solid #ddd; border-radius: 8px; height: 200px; margin-top: 10px; background: #fff; }
-#list-input { width: 100%; height: 100%; border: none; outline: none; padding: 15px; box-sizing: border-box; font-size: 16px; resize: none; font-family: inherit; }
+.editor-container {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    height: 200px;
+    margin-top: 10px;
+    background: #fff;
+}
 
-.main-btn { background: #27ae60; color: white; border: none; padding: 10px 16px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; max-width: 250px; margin: 10px auto; display: block; }
+#list-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    padding: 15px;
+    box-sizing: border-box;
+    font-size: 16px;
+    resize: none;
+    font-family: inherit;
+}
 
-.game-layout { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; width: 100%; }
-.board-area { flex: 1 1 500px; max-width: 100%; }
+.main-btn {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    max-width: 250px;
+    margin: 10px auto;
+    display: block;
+}
+
+.game-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    width: 100%;
+}
+
+.board-area {
+    flex: 1 1 500px;
+    max-width: 100%;
+}
 
 .online-area {
     flex: 1 1 300px;
@@ -71,31 +126,120 @@ body {
 .mini-player-card {
     background: white;
     border: 1px solid #ddd;
-    padding: 12px;
+    padding: 10px;
     border-radius: 10px;
-    margin-bottom: 12px;
-    width: 100%;
-    max-width: 280px;
+    margin: 0 auto 12px auto;
+    width: 90%;
+    max-width: 250px;
     box-sizing: border-box;
     cursor: pointer;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
-.mini-player-card.offline { opacity: 0.5; filter: grayscale(0.8); }
 
-.mini-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; width: 100px; margin: 0 auto; }
-.mini-cell { width: 18px; height: 18px; border: 1px solid #ccc; background: #fff; }
+.mini-player-card.offline {
+    opacity: 0.5;
+    filter: grayscale(0.8);
+}
 
-.board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 10px; width: 100%; box-sizing: border-box; }
-.cell { aspect-ratio: 1/1; border: 1px solid #333; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; cursor: pointer; background: #fff; word-break: break-word; padding: 2px; box-sizing: border-box; }
+.mini-name {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+}
 
-.reset-btn { background: #3498db; margin-top: 20px; width: 100%; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 100; }
-.overlay.hidden { display: none; }
-.win-content { background: white; padding: 30px; border-radius: 12px; text-align: center; width: 90%; max-width: 400px; }
+.mini-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    width: 100px;
+    margin: 0 auto;
+}
+
+.mini-cell {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #ccc;
+    background: #fff;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    margin-top: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.cell {
+    aspect-ratio: 1/1;
+    border: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: bold;
+    cursor: pointer;
+    background: #fff;
+    word-break: break-all;
+    padding: 2px;
+    box-sizing: border-box;
+}
+
+.reset-btn {
+    background: #3498db;
+    margin-top: 20px;
+    width: 100%;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.win-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
 
 @media (max-width: 768px) {
-    .game-layout { flex-direction: column; }
-    .online-area { max-height: 350px; }
-    .cell { font-size: 7px; padding: 1px; }
-    .mini-player-card { width: 95%; }
+    .game-layout {
+        flex-direction: column;
+    }
+
+    .online-area {
+        max-height: 350px;
+    }
+
+    .cell {
+        font-size: 8px;
+    }
+
+    .mini-player-card {
+        width: 95%;
+    }
 }
