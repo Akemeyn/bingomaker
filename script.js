@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, onDisconnect, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+import { getDatabase, ref, set, get, onValue, onDisconnect, update, remove } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -56,6 +56,21 @@ window.loginUser = async function () {
                 await initPersistentProfile(nick);
             } catch (err) { alert("Kayıt hatası: " + (err.message || err.code)); }
         } else { alert("Giriş Hatası: " + (error.message || error.code)); }
+    }
+};
+
+window.resetGame = async function() {
+    const onay = confirm("Tüm oyuncuları silmek ve oyunu herkes için sıfırlamak istediğinize emin misiniz?");
+    
+    if (onay) {
+        try {
+            await remove(ref(db, 'players'));
+            
+            window.location.search = ''; 
+            
+        } catch (error) {
+            alert("Sıfırlama işlemi sırasında bir hata oluştu: " + error.message);
+        }
     }
 };
 
