@@ -22,38 +22,42 @@ let currentUser = { uid: null, name: "", color: "" };
 let mySelections = [12];
 let bingoItems = [];
 
-window.onload = function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('items')) showScreen('login-screen');
-    else showScreen('setup-screen');
-};
-
 window.loginUser = async function() {
     const nick = document.getElementById('nickname-input').value.trim();
     const pass = document.getElementById('password-input').value.trim();
+    
     if (!nick || !pass) return alert("Lütfen kullanıcı adı ve şifre girin!");
 
-    const email = `${nick}@bingo.com`;
+    const email = nick.includes('@') ? nick : `${nick.toLowerCase()}@bingo.com`;
 
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, pass);
         currentUser.uid = userCredential.user.uid;
         loadPersistentProfile();
     } catch (error) {
+        console.error("Firebase Hatası:", error.code, error.message);
+        
         if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
             try {
                 const newUser = await createUserWithEmailAndPassword(auth, email, pass);
                 currentUser.uid = newUser.user.uid;
                 await initPersistentProfile(nick);
-            } catch (err) { alert("Hata: " + err.message); }
-        } else { alert("Şifre yanlış veya bir hata oluştu."); }
+            } catch (err) {
+                // Özel hata mesajları
+                if (err.code === 'auth/weak-password') alert("Şifre çok kısa (en az 6 karakter)!");
+                else if (err.code === 'auth/email-already-in-use') alert("Bu kullanıcı adı alınmış ama şifre yanlış.");
+                else alert("Hata: " + err.code);
+            }
+        } else {
+            alert("Giriş başarısız: " + error.code);
+        }
     }
 };
 
 async function initPersistentProfile(nick) {
     const urlParams = new URLSearchParams(window.location.search);
     const encodedData = urlParams.get('items');
-    if (!encodedData) return alert("Önce bir liste oluşturmalısın!");
+    if (!encodedData) return alert("Önce bir bingo listesi oluşturmalısın!");
 
     const decoded = decodeURIComponent(escape(atob(encodedData)));
     const shuffledItems = decoded.split('|').sort(() => Math.random() - 0.5);
@@ -94,6 +98,8 @@ async function loadPersistentProfile() {
 
         showScreen('game-screen');
         startLiveSession();
+    } else {
+        alert("Profil verisi bulunamadı. Lütfen yeni bir liste linkiyle giriş yapın.");
     }
 }
 
@@ -105,13 +111,10 @@ function startLiveSession() {
         selections: mySelections,
         isOnline: true
     });
-
     onDisconnect(liveRef).update({ isOnline: false });
-    
     document.addEventListener("visibilitychange", () => {
         update(liveRef, { isOnline: document.visibilityState === 'visible' });
     });
-
     renderBoard();
     listenOnlinePlayers();
 }
