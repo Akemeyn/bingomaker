@@ -116,16 +116,43 @@ async function initPersistentProfile(nick) {
 
 async function loadPersistentProfile() {
     try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const encodedData = urlParams.get('items');
+
         const snapshot = await get(ref(db, 'users/' + currentUser.uid));
         if (snapshot.exists()) {
             const data = snapshot.val();
             currentUser.name = data.name;
             currentUser.color = data.color;
-            bingoItems = data.bingoItems;
+
+            if (encodedData) {
+                const decoded = decodeURIComponent(escape(atob(encodedData)));
+                const newList = decoded.split('|').sort();
+                
+                const oldList = data.bingoItems ? [...data.bingoItems].sort() : [];
+
+                const isDifferentGame = JSON.stringify(newList) !== JSON.stringify(oldList);
+
+                if (isDifferentGame) {
+                    console.log("Yeni bir bingo listesi algılandı, kart güncelleniyor...");
+                    bingoItems = decoded.split('|').sort(() => Math.random() - 0.5);
+                    await update(ref(db, 'users/' + currentUser.uid), { 
+                        bingoItems: bingoItems 
+                    });
+                } else {
+                    console.log("Aynı liste, mevcut kart düzeni korunuyor.");
+                    bingoItems = data.bingoItems;
+                }
+            } else {
+                bingoItems = data.bingoItems;
+            }
+
             showScreen('game-screen');
             startLiveSession();
         }
-    } catch (e) { alert("Hata: " + e.message); }
+    } catch (e) {
+        alert("Profil yüklenirken hata oluştu: " + e.message);
+    }
 }
 
 function startLiveSession() {
