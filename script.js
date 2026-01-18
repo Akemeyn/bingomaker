@@ -22,20 +22,30 @@ let currentUser = { uid: null, name: "", color: "" };
 let mySelections = [12];
 let bingoItems = [];
 
+window.onload = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('items')) {
+        showScreen('login-screen');
+    } else {
+        showScreen('setup-screen');
+    }
+};
+
 window.loginUser = async function() {
     const nick = document.getElementById('nickname-input').value.trim();
     const pass = document.getElementById('password-input').value.trim();
     
     if (!nick || !pass) return alert("Lütfen kullanıcı adı ve şifre girin!");
+    if (pass.length < 6) return alert("Şifre en az 6 karakter olmalıdır!");
 
-    const email = nick.includes('@') ? nick : `${nick.toLowerCase()}@bingo.com`;
+    const email = `${nick.toLowerCase()}@bingo.com`;
 
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, pass);
         currentUser.uid = userCredential.user.uid;
-        loadPersistentProfile();
+        await loadPersistentProfile();
     } catch (error) {
-        console.error("Firebase Hatası:", error.code, error.message);
+        console.error("Firebase Hatası:", error.code);
         
         if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
             try {
@@ -43,13 +53,10 @@ window.loginUser = async function() {
                 currentUser.uid = newUser.user.uid;
                 await initPersistentProfile(nick);
             } catch (err) {
-                // Özel hata mesajları
-                if (err.code === 'auth/weak-password') alert("Şifre çok kısa (en az 6 karakter)!");
-                else if (err.code === 'auth/email-already-in-use') alert("Bu kullanıcı adı alınmış ama şifre yanlış.");
-                else alert("Hata: " + err.code);
+                alert("Giriş başarısız. Şifre yanlış olabilir veya kullanıcı adı alınmıştır.");
             }
         } else {
-            alert("Giriş başarısız: " + error.code);
+            alert("Bir hata oluştu: " + error.code);
         }
     }
 };
@@ -75,7 +82,8 @@ async function initPersistentProfile(nick) {
         color: finalColor,
         bingoItems: shuffledItems
     });
-    loadPersistentProfile();
+    
+    await loadPersistentProfile();
 }
 
 async function loadPersistentProfile() {
@@ -88,18 +96,12 @@ async function loadPersistentProfile() {
         currentUser.name = data.name;
         currentUser.color = data.color;
         
-        if (encodedData) {
-            const decoded = decodeURIComponent(escape(atob(encodedData)));
-            bingoItems = decoded.split('|').sort(() => Math.random() - 0.5);
-            await update(ref(db, 'users/' + currentUser.uid), { bingoItems: bingoItems });
-        } else {
-            bingoItems = data.bingoItems;
-        }
+        bingoItems = data.bingoItems;
 
         showScreen('game-screen');
         startLiveSession();
     } else {
-        alert("Profil verisi bulunamadı. Lütfen yeni bir liste linkiyle giriş yapın.");
+        alert("Profil verisi bulunamadı. Lütfen yeni bir liste oluşturup kaydolun.");
     }
 }
 
@@ -111,13 +113,43 @@ function startLiveSession() {
         selections: mySelections,
         isOnline: true
     });
+
     onDisconnect(liveRef).update({ isOnline: false });
+    
     document.addEventListener("visibilitychange", () => {
-        update(liveRef, { isOnline: document.visibilityState === 'visible' });
+        if (currentUser.uid) {
+            update(ref(db, 'players/' + currentUser.uid), { 
+                isOnline: document.visibilityState === 'visible' 
+            });
+        }
     });
+
     renderBoard();
     listenOnlinePlayers();
 }
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+}
+
+window.updateEditor = function() {
+    const input = document.getElementById('list-input');
+    const lines = input.value.split('\n').filter(l => l.trim() !== "");
+    const counter = document.getElementById('counter');
+    counter.innerText = `Madde Sayısı: ${lines.length} / 24`;
+    counter.style.color = lines.length >= 24 ? "#27ae60" : "#e67e22";
+};
+
+window.generateLink = function() {
+    const text = document.getElementById('list-input').value.trim();
+    const items = text.split('\n').filter(i => i.trim() !== "");
+    if (items.length < 24) { alert("En az 24 madde yazmalısınız!"); return; }
+    const encoded = btoa(unescape(encodeURIComponent(items.join('|'))));
+    const url = window.location.origin + window.location.pathname + "?items=" + encoded;
+    document.getElementById('share-url').value = url;
+    document.getElementById('link-result').classList.remove('hidden');
+};
 
 function renderBoard() {
     const board = document.getElementById('bingo-board');
@@ -172,10 +204,39 @@ function listenOnlinePlayers() {
     });
 }
 
-function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
-window.updateEditor = function() { const input = document.getElementById('list-input'); const lines = input.value.split('\n').filter(l => l.trim() !== ""); const counter = document.getElementById('counter'); counter.innerText = `Madde Sayısı: ${lines.length} / 24`; counter.style.color = lines.length >= 24 ? "#27ae60" : "#e67e22"; };
-window.generateLink = function() { const text = document.getElementById('list-input').value.trim(); const items = text.split('\n').filter(i => i.trim() !== ""); if (items.length < 24) { alert("En az 24 madde yazmalısınız!"); return; } const encoded = btoa(unescape(encodeURIComponent(items.join('|')))); const url = window.location.origin + window.location.pathname + "?items=" + encoded; document.getElementById('share-url').value = url; document.getElementById('link-result').classList.remove('hidden'); };
-function viewOther(player) { const body = document.getElementById('modal-body'); body.innerHTML = `<h3>${player.name} Kartı</h3><div class="board" id="mini-board-modal"></div><p style="font-size:12px; color:#666; margin-top:10px;">Kapatmak için dışarıya tıklayın.</p>`; const miniBoard = document.getElementById('mini-board-modal'); for (let i = 0; i < 25; i++) { const cell = document.createElement('div'); cell.className = 'cell' + (player.selections.includes(i) ? ' selected' : ''); if (player.selections.includes(i)) cell.style.backgroundColor = player.color || "#f1c40f"; if (i === 12) cell.innerText = "⭐"; else { const idx = i > 12 ? i - 1 : i; cell.innerText = player.items[idx] || ""; } miniBoard.appendChild(cell); } document.getElementById('overlay').classList.remove('hidden'); }
-function checkWin() { const winCombos = [[0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],[0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],[0,6,12,18,24],[4,8,12,16,20]]; for (let combo of winCombos) { if (combo.every(idx => mySelections.includes(idx))) { const body = document.getElementById('modal-body'); body.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center;"><img src="Bingologo.png" style="max-height:80px; margin-bottom:15px;"><h2>🎉 BİNGO! 🎉</h2><p>Tebrikler Atıf Eren, kazandın!</p><button onclick="closeModal()" class="main-btn" style="margin-top:15px;">Kapat</button></div>`; document.getElementById('overlay').classList.remove('hidden'); break; } } }
+function viewOther(player) {
+    const body = document.getElementById('modal-body');
+    body.innerHTML = `<h3>${player.name} Kartı</h3><div class="board" id="mini-board-modal"></div><p style="font-size:12px; color:#666; margin-top:10px;">Kapatmak için dışarıya tıklayın.</p>`;
+    const miniBoard = document.getElementById('mini-board-modal');
+    for (let i = 0; i < 25; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell' + (player.selections.includes(i) ? ' selected' : '');
+        if (player.selections.includes(i)) cell.style.backgroundColor = player.color || "#f1c40f";
+        if (i === 12) cell.innerText = "⭐";
+        else {
+            const idx = i > 12 ? i - 1 : i;
+            cell.innerText = player.items[idx] || "";
+        }
+        miniBoard.appendChild(cell);
+    }
+    document.getElementById('overlay').classList.remove('hidden');
+}
+
+function checkWin() {
+    const winCombos = [[0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],[0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],[0,6,12,18,24],[4,8,12,16,20]];
+    for (let combo of winCombos) {
+        if (combo.every(idx => mySelections.includes(idx))) {
+            const body = document.getElementById('modal-body');
+            body.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center;"><img src="Bingologo.png" style="max-height:80px; margin-bottom:15px;"><h2>🎉 BİNGO! 🎉</h2><p>Tebrikler Atıf Eren, kazandın!</p><button onclick="closeModal()" class="main-btn" style="margin-top:15px;">Kapat</button></div>`;
+            document.getElementById('overlay').classList.remove('hidden');
+            break;
+        }
+    }
+}
+
 window.closeModal = function() { document.getElementById('overlay').classList.add('hidden'); };
-window.copyLink = function() { const el = document.getElementById('share-url'); el.select(); document.execCommand('copy'); alert("Link kopyalandı!"); };
+window.copyLink = function() {
+    const el = document.getElementById('share-url');
+    el.select(); document.execCommand('copy');
+    alert("Link kopyalandı!");
+};
