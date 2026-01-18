@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+import { getDatabase, ref, set, get, onValue, onDisconnect, remove, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDUFrvnDFeVXFgZaTW_E92QAbkLgig2NcY",
@@ -36,6 +36,7 @@ window.loginUser = async function() {
         savedId = "user_" + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('bingo_user_id', savedId);
     }
+    
     currentUser.id = savedId;
     currentUser.name = nick;
     
@@ -46,11 +47,14 @@ window.loginUser = async function() {
     if (snapshot.exists()) {
         const playersData = snapshot.val();
         for (let key in playersData) {
-            if (playersData[key].name === nick && key !== currentUser.id) {
-                remove(ref(db, 'players/' + key));
+            if (playersData[key].name === nick) {
+                await remove(ref(db, 'players/' + key));
             }
         }
-        usedColors = Object.values(playersData).map(p => p.color);
+        const updatedSnapshot = await get(playersRef);
+        if (updatedSnapshot.exists()) {
+            usedColors = Object.values(updatedSnapshot.val()).map(p => p.color);
+        }
     }
     
     const availableColors = colorPalette.filter(color => !usedColors.includes(color));
@@ -80,7 +84,11 @@ function setupBingo(encodedData) {
     onDisconnect(userRef).update({ isOnline: false });
     
     document.addEventListener("visibilitychange", () => {
-        set(ref(db, `players/${currentUser.id}/isOnline`), document.visibilityState === 'visible');
+        if (currentUser.id) {
+            update(ref(db, 'players/' + currentUser.id), { 
+                isOnline: document.visibilityState === 'visible' 
+            });
+        }
     });
 
     renderBoard();
@@ -93,6 +101,7 @@ function listenOnlinePlayers() {
         const container = document.getElementById('others-container');
         container.innerHTML = '';
         if (!players) return;
+        
         for (let id in players) {
             if (id === currentUser.id) continue;
             const player = players[id];
@@ -110,7 +119,9 @@ function listenOnlinePlayers() {
             for (let i = 0; i < 25; i++) {
                 const mc = document.createElement('div');
                 mc.className = 'mini-cell';
-                if (player.selections && player.selections.includes(i)) mc.style.backgroundColor = player.color;
+                if (player.selections && player.selections.includes(i)) {
+                    mc.style.backgroundColor = player.color;
+                }
                 grid.appendChild(mc);
             }
             card.appendChild(grid);
@@ -119,6 +130,29 @@ function listenOnlinePlayers() {
         }
     });
 }
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+}
+
+window.updateEditor = function() {
+    const input = document.getElementById('list-input');
+    const lines = input.value.split('\n').filter(l => l.trim() !== "");
+    const counter = document.getElementById('counter');
+    counter.innerText = `Madde Sayısı: ${lines.length} / 24`;
+    counter.style.color = lines.length >= 24 ? "#27ae60" : "#e67e22";
+};
+
+window.generateLink = function() {
+    const text = document.getElementById('list-input').value.trim();
+    const items = text.split('\n').filter(i => i.trim() !== "");
+    if (items.length < 24) { alert("En az 24 madde yazmalısınız!"); return; }
+    const encoded = btoa(unescape(encodeURIComponent(items.join('|'))));
+    const url = window.location.origin + window.location.pathname + "?items=" + encoded;
+    document.getElementById('share-url').value = url;
+    document.getElementById('link-result').classList.remove('hidden');
+};
 
 function renderBoard() {
     const board = document.getElementById('bingo-board');
@@ -141,7 +175,7 @@ function toggleCell(i) {
     if (i === 12) return;
     if (mySelections.includes(i)) mySelections = mySelections.filter(item => item !== i);
     else mySelections.push(i);
-    set(ref(db, `players/${currentUser.id}/selections`), mySelections);
+    update(ref(db, 'players/' + currentUser.id), { selections: mySelections });
     renderBoard();
     checkWin();
 }
@@ -172,7 +206,7 @@ function checkWin() {
             body.innerHTML = `
                 <div style="display:flex; flex-direction:column; align-items:center;">
                     <img src="Bingologo.png" style="max-height:80px; margin-bottom:15px;">
-                    <p>Tebrikler Atıf Eren, kazandın!</p>
+                    <p>Tebrikler kazandın!</p>
                     <button onclick="closeModal()" class="main-btn" style="margin-top:15px;">Kapat</button>
                 </div>
             `;
